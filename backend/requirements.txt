@@ -27,6 +27,8 @@ httpx==0.28.1
 aiohttp==3.11.13
 html5lib==1.1
 selectolax==0.3.28
+html2text
+playwright
 
 # NLP and text analysis
 nltk==3.9.1
