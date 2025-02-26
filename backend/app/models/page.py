@@ -30,7 +30,7 @@ class Page(BaseModel):
     )
     last_parsed_at = Column(DateTime, nullable=True)
     parse_settings = Column(JSON, nullable=True)
-    metadata = Column(JSON, nullable=True)
+    page_metadata = Column(JSON, nullable=True)
     html_content = Column(Text, nullable=True)
     text_content = Column(Text, nullable=True)
     structure = Column(JSON, nullable=True)

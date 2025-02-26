@@ -54,7 +54,7 @@ class PageParser:
                 "html_content": html_content,
                 "main_content": str(main_content),
                 "text_content": text_content,
-                "metadata": metadata,
+                "page_metadata": metadata,
                 "structure": structure,
             }
 

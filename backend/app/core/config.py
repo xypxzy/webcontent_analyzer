@@ -1,7 +1,7 @@
-from typing import List, Union
+from typing import List, Union, Optional
 
-from pydantic import AnyHttpUrl, PostgresDsn, RedisDsn, field_validator
-from pydantic_settings import BaseSettings
+from pydantic import AnyHttpUrl, field_validator, model_validator
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
@@ -28,37 +28,13 @@ class Settings(BaseSettings):
     POSTGRES_PASSWORD: str
     POSTGRES_DB: str
     POSTGRES_PORT: str = "5432"
-    DATABASE_URI: PostgresDsn = None
-
-    @field_validator("DATABASE_URI", mode="before")
-    def assemble_db_connection(cls, v: str, values: dict) -> str:
-        if v:
-            return v
-        return PostgresDsn.build(
-            scheme="postgresql+asyncpg",
-            username=values.get("POSTGRES_USER"),
-            password=values.get("POSTGRES_PASSWORD"),
-            host=values.get("POSTGRES_SERVER"),
-            port=values.get("POSTGRES_PORT"),
-            path=f"{values.get('POSTGRES_DB') or ''}",
-        )
+    DATABASE_URI: Optional[str] = None
 
     # Redis and Celery
     REDIS_HOST: str
     REDIS_PORT: str = "6379"
-    CELERY_BROKER_URL: RedisDsn = None
-    CELERY_RESULT_BACKEND: RedisDsn = None
-
-    @field_validator("CELERY_BROKER_URL", "CELERY_RESULT_BACKEND", mode="before")
-    def assemble_redis_connection(cls, v: str, values: dict) -> str:
-        if v:
-            return v
-        return RedisDsn.build(
-            scheme="redis",
-            host=values.get("REDIS_HOST"),
-            port=values.get("REDIS_PORT"),
-            path="/0",
-        )
+    CELERY_BROKER_URL: Optional[str] = None
+    CELERY_RESULT_BACKEND: Optional[str] = None
 
     # Parser settings
     PARSER_TIMEOUT: int = 30
@@ -74,9 +50,27 @@ class Settings(BaseSettings):
     ENVIRONMENT: str = "production"
     DEBUG: bool = False
 
-    class Config:
-        env_file = ".env"
-        case_sensitive = True
+    @model_validator(mode="after")
+    def assemble_db_connection(self) -> "Settings":
+        if not self.DATABASE_URI:
+            self.DATABASE_URI = f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
+        return self
+
+    @model_validator(mode="after")
+    def assemble_redis_connection(self) -> "Settings":
+        if not self.CELERY_BROKER_URL:
+            self.CELERY_BROKER_URL = f"redis://{self.REDIS_HOST}:{self.REDIS_PORT}/0"
+        if not self.CELERY_RESULT_BACKEND:
+            self.CELERY_RESULT_BACKEND = (
+                f"redis://{self.REDIS_HOST}:{self.REDIS_PORT}/0"
+            )
+        return self
+
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=True,
+    )
 
 
 settings = Settings()

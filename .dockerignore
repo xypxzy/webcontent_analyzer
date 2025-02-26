@@ -1,0 +1,79 @@
+# Git
+.git
+.gitignore
+.github
+
+# Node.js
+node_modules
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+.npm
+.yarn
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.mypy_cache/
+
+# IDE и редакторы
+.idea/
+.vscode/
+*.swp
+*.swo
+*.sublime-workspace
+*.sublime-project
+
+# Документация и тесты
+README.md
+LICENSE
+tests/
+docs/
+test_*.py
+*_test.py
+
+# Docker
+docker-compose*.yml
+Dockerfile*
+.dockerignore
+
+# Временные файлы
+tmp/
+temp/
+
+# Кеши и логи
+.cache/
+logs/
+*.log
+
+# Локальные настройки
+.env*
+!.env.example
+
+# Файлы разработки
+.editorconfig
+.eslintrc
+.prettierrc
+.stylelintrc
