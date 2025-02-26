@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  backend:
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    environment:
+      - ENVIRONMENT=development
+      - DEBUG=1
+
+  celery_worker:
+    command: watchmedo auto-restart --directory=./app --pattern=*.py --recursive -- celery -A app.tasks.worker worker --loglevel=info
+    environment:
+      - ENVIRONMENT=development
+      - DEBUG=1
+
+  frontend:
+    command: npm start
+    environment:
+      - NODE_ENV=development
+      - REACT_APP_API_URL=http://localhost:8000
