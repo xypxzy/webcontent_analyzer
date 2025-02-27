@@ -7,7 +7,6 @@ from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import crud, models, schemas
-from app.core.config import settings
 from app.db.session import AsyncSessionLocal
 from app.services.analyzer.content_analyzer import ContentAnalyzer
 from app.tasks.worker import celery_app
@@ -56,6 +55,15 @@ async def _analyze_page_content_async(page_id: str) -> Dict[str, Any]:
             # Initialize analyzer
             analyzer = ContentAnalyzer()
 
+            # Extract target keywords from page metadata if available
+            target_keywords = None
+            if page.page_metadata and page.page_metadata.get("keywords"):
+                keywords = page.page_metadata.get("keywords", [])
+                if isinstance(keywords, str):
+                    target_keywords = [kw.strip() for kw in keywords.split(",")]
+                elif isinstance(keywords, list):
+                    target_keywords = keywords
+
             # Perform analysis
             analysis_result = await analyzer.analyze_content(
                 text=page.text_content,
@@ -63,6 +71,7 @@ async def _analyze_page_content_async(page_id: str) -> Dict[str, Any]:
                 metadata=page.page_metadata or {},
                 url=str(page.url),
                 structure=page.structure or {},
+                target_keywords=target_keywords,
             )
 
             # Update analysis with results
@@ -73,13 +82,10 @@ async def _analyze_page_content_async(page_id: str) -> Dict[str, Any]:
                     "status": "completed",
                     "analyzed_at": datetime.utcnow(),
                     "seo_metrics": analysis_result.get("seo_metrics"),
+                    "keywords": analysis_result.get("target_keywords"),
                     "readability_metrics": analysis_result.get("readability_metrics"),
-                    "keywords": analysis_result.get("keywords"),
-                    "entities": analysis_result.get("entities"),
-                    "sentiment": analysis_result.get("sentiment"),
-                    "topics": analysis_result.get("topics"),
-                    "content_quality": analysis_result.get("content_quality"),
-                    "ux_metrics": analysis_result.get("ux_metrics"),
+                    "sentiment": analysis_result.get("sentiment_analysis"),
+                    "topics": analysis_result.get("topic_analysis"),
                 },
             )
 
@@ -107,24 +113,37 @@ async def _create_recommendations(
     Create recommendation records from analysis results.
     """
     # Remove existing recommendations
-    result = await session.execute(
-        select(models.PageRecommendation).filter(
-            models.PageRecommendation.analysis_id == analysis_id
-        )
+    existing_recommendations = await crud.page_recommendation.get_by_analysis_id(
+        session, analysis_id=analysis_id
     )
-    existing_recommendations = result.scalars().all()
     for rec in existing_recommendations:
         await session.delete(rec)
 
     # Create new recommendations
     for rec_data in recommendations:
+        # Map category from analyzer to database category
+        category_mapping = {
+            "seo_meta_tags": "seo",
+            "seo_headings": "seo",
+            "seo_url_structure": "seo",
+            "seo_keyword_usage": "seo",
+            "seo_optimization": "seo",
+            "seo_content_relevance": "content",
+            "seo_lsi_keywords": "content",
+            # Add other categories as needed
+        }
+
+        category = category_mapping.get(rec_data.get("category"), "content")
+
         recommendation = models.PageRecommendation(
             analysis_id=analysis_id,
-            category=rec_data.get("category", "content"),
+            category=category,
             priority=rec_data.get("priority", 3),
             title=rec_data.get("title"),
             description=rec_data.get("description"),
-            suggestion=rec_data.get("suggestion"),
+            suggestion=rec_data.get(
+                "description"
+            ),  # Use description as suggestion for now
             affected_elements=rec_data.get("affected_elements"),
             is_implemented=False,
         )

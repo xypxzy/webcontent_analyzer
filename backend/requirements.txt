@@ -41,6 +41,8 @@ sentence-transformers==3.4.1
 bertopic==0.16.4
 gensim==4.3.3
 textblob==0.19.0
+langdetect
+language_tool_python
 
 # Data processing
 pandas==2.2.3
