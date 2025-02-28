@@ -1,3 +1,4 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -9,32 +10,10 @@ from app.core.config import settings
 from app.db.session import engine
 from app.models import base
 
-app = FastAPI(
-    title="WebContentAnalyzer API",
-    description="API for analyzing and optimizing website content",
-    version="0.1.0",
-)
 
-# Configure CORS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[str(origin) for origin in settings.BACKEND_CORS_ORIGINS] or ["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-# Include API routes
-app.include_router(auth.router, prefix="/api/v1", tags=["Authentication"])
-app.include_router(projects.router, prefix="/api/v1", tags=["Projects"])
-app.include_router(pages.router, prefix="/api/v1", tags=["Pages"])
-app.include_router(analysis.router, prefix="/api/v1", tags=["Analysis"])
-app.include_router(generation.router, prefix="/api/v1", tags=["Generation"])
-
-
-@app.on_event("startup")
-async def startup_event():
-    # Create database tables if they don't exist
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup: Create database tables if they don't exist
     try:
         # Try to establish a connection and create tables
         logger.info(f"Connecting to database at {settings.DATABASE_URI}")
@@ -52,6 +31,36 @@ async def startup_event():
         logger.warning(
             "Application will continue to run, but database functionality may be limited."
         )
+
+    # Yield control back to FastAPI
+    yield
+
+    # Shutdown: Clean up resources if needed
+    logger.info("Shutting down application...")
+
+
+app = FastAPI(
+    title="WebContentAnalyzer API",
+    description="API for analyzing and optimizing website content",
+    version="0.1.0",
+    lifespan=lifespan,  # Use the lifespan context manager
+)
+
+# Configure CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[str(origin) for origin in settings.BACKEND_CORS_ORIGINS] or ["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Include API routes with fixed structure
+app.include_router(auth.router, prefix="/api/v1", tags=["Authentication"])
+app.include_router(projects.router, prefix="/api/v1")  # Projects already has prefix="/projects"
+app.include_router(pages.router, prefix="/api/v1")  # Pages has mixed routes
+app.include_router(analysis.router, prefix="/api/v1", tags=["Analysis"])
+app.include_router(generation.router, prefix="/api/v1", tags=["Generation"])
 
 
 @app.get("/api/health", tags=["Health"])

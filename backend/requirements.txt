@@ -27,12 +27,12 @@ httpx==0.28.1
 aiohttp==3.11.13
 html5lib==1.1
 selectolax==0.3.28
-html2text
-playwright
+html2text==2020.1.16
+playwright==1.50.0
 
 # NLP and text analysis
 nltk==3.9.1
-spacy==3.8.0
+spacy==3.8.3
 transformers==4.49.0
 scikit-learn==1.6.1
 textstat==0.7.5
@@ -41,8 +41,8 @@ sentence-transformers==3.4.1
 bertopic==0.16.4
 gensim==4.3.3
 textblob==0.19.0
-langdetect
-language_tool_python
+langdetect==1.0.9
+language_tool_python==2.9.0
 
 # Data processing
 pandas==2.2.3
@@ -59,6 +59,7 @@ pyyaml==6.0.2
 tenacity==9.0.0
 loguru==0.7.3
 ujson==5.10.0
+blis==1.2.0
 
 # Testing
 pytest==8.3.4

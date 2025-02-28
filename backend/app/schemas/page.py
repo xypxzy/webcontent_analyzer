@@ -1,11 +1,11 @@
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, Union
 from datetime import datetime
 
-from pydantic import BaseModel, UUID4, HttpUrl
+from pydantic import BaseModel, UUID4, HttpUrl, AnyHttpUrl, Field
 
 
 class PageBase(BaseModel):
-    url: HttpUrl
+    url: Union[str, HttpUrl] = Field(..., description="URL to analyze")
     parse_settings: Optional[Dict[str, Any]] = None
 
 
@@ -14,7 +14,7 @@ class PageCreate(PageBase):
 
 
 class PageUpdate(PageBase):
-    url: Optional[HttpUrl] = None
+    url: Optional[Union[str, HttpUrl]] = None
     status: Optional[str] = None
     retry_count: Optional[int] = None
 
