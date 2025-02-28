@@ -7,6 +7,7 @@ from app.schemas.analysis import (
     PageAnalysisCreate,
     PageRecommendation,
     PageRecommendationCreate,
+    ContentAnalysisRequest,
 )
 from app.schemas.optimization import (
     OptimizedPage,

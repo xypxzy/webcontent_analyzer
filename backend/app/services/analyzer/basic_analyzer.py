@@ -1,14 +1,9 @@
 import asyncio
 from typing import Dict, List, Any, Optional
 import re
-
-# import math
-
 import textstat
 from loguru import logger
 import language_tool_python
-import nltk
-from nltk.tokenize import word_tokenize, sent_tokenize
 
 from app.services.analyzer.models.model_loader import ModelLoader
 

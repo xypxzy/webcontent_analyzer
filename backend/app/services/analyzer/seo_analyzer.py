@@ -44,26 +44,32 @@ class SEOAnalyzer(BaseAnalyzer):
 
     async def analyze(
         self,
-        html: str,
-        text: str,
-        metadata: Dict[str, Any],
-        url: str,
+        processed_text: Dict[str, Any],
+        html_content: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None,
+        url: Optional[str] = None,
+        structure: Optional[Dict[str, Any]] = None,
         target_keywords: Optional[List[str]] = None,
     ) -> Dict[str, Any]:
         """
         Perform comprehensive SEO analysis on the web content.
 
         Args:
-            html: The raw HTML content of the page
-            text: The extracted text content
+            processed_text: The preprocessed text data
+            html_content: The raw HTML content of the page
             metadata: Page metadata including title, description, etc.
             url: The URL of the page
+            structure: The HTML structure information
             target_keywords: Optional list of target keywords to analyze against
 
         Returns:
             Dict containing SEO analysis results and scores
         """
-        soup = BeautifulSoup(html, "html.parser")
+        metadata = metadata or {}
+        text = processed_text.get("normalized_text", "")
+
+        # Parse HTML if provided
+        soup = BeautifulSoup(html_content, "html.parser") if html_content else None
 
         # Run analyses in parallel
         meta_analysis, heading_analysis, url_analysis, keyword_analysis = (

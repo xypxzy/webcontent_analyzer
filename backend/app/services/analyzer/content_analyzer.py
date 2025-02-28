@@ -76,6 +76,7 @@ class ContentAnalyzer:
         metadata: Dict[str, Any] = None,
         url: str = None,
         structure: Dict[str, Any] = None,
+        target_keywords: Optional[List[str]] = None,
     ) -> Dict[str, Any]:
         """
         Выполнение полного анализа текстового контента.
@@ -86,6 +87,7 @@ class ContentAnalyzer:
             metadata: Метаданные страницы (опционально)
             url: URL страницы (опционально)
             structure: Структура страницы (опционально)
+            target_keywords: Целевые ключевые слова (опционально)
 
         Returns:
             Словарь с результатами всех типов анализа
@@ -120,7 +122,9 @@ class ContentAnalyzer:
             self._run_basic_analysis(processed_text, lang),
             self._run_semantic_analysis(processed_text, text, lang),
             self._run_sentiment_analysis(processed_text, text, lang),
-            self._run_seo_analysis(processed_text, html, metadata, url, structure),
+            self._run_seo_analysis(
+                processed_text, html, metadata, url, structure, target_keywords
+            ),
         ]
 
         # Выполнение всех задач параллельно
@@ -166,7 +170,9 @@ class ContentAnalyzer:
         logger.info("Выполнение анализа тональности")
         return await self.sentiment_analyzer.analyze(processed_text, raw_text, lang)
 
-    async def _run_seo_analysis(self, processed_text, html, metadata, url, structure):
+    async def _run_seo_analysis(
+        self, processed_text, html, metadata, url, structure, target_keywords=None
+    ):
         """Запуск SEO-анализа"""
         logger.info("Выполнение SEO-анализа")
         return await self.seo_analyzer.analyze(
@@ -175,6 +181,7 @@ class ContentAnalyzer:
             metadata=metadata or {},
             url=url,
             structure=structure or {},
+            target_keywords=target_keywords,
         )
 
     async def _generate_recommendations(

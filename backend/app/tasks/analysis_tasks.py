@@ -1,6 +1,6 @@
 import asyncio
 from datetime import datetime
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 from uuid import UUID
 
 from loguru import logger
@@ -52,8 +52,14 @@ async def _analyze_page_content_async(page_id: str) -> Dict[str, Any]:
             if not page.text_content or not page.html_content:
                 raise ValueError("Page has no content to analyze")
 
-            # Initialize analyzer
-            analyzer = ContentAnalyzer()
+            # Initialize analyzer with appropriate configuration
+            analyzer = ContentAnalyzer(
+                config={
+                    "language": "en",  # Default language
+                    "max_text_length": 100000,  # Max text length to analyze
+                    "enable_cache": True,  # Enable caching for better performance
+                }
+            )
 
             # Extract target keywords from page metadata if available
             target_keywords = None
@@ -82,10 +88,17 @@ async def _analyze_page_content_async(page_id: str) -> Dict[str, Any]:
                     "status": "completed",
                     "analyzed_at": datetime.utcnow(),
                     "seo_metrics": analysis_result.get("seo_metrics"),
-                    "keywords": analysis_result.get("target_keywords"),
-                    "readability_metrics": analysis_result.get("readability_metrics"),
-                    "sentiment": analysis_result.get("sentiment_analysis"),
-                    "topics": analysis_result.get("topic_analysis"),
+                    "keywords": analysis_result.get("semantic_analysis", {}).get(
+                        "keywords", {}
+                    ),
+                    "readability_metrics": analysis_result.get("basic_metrics", {}).get(
+                        "readability", {}
+                    ),
+                    "sentiment": analysis_result.get("sentiment_analysis", {}),
+                    "topics": analysis_result.get("semantic_analysis", {}).get(
+                        "topics", {}
+                    ),
+                    "content_quality": analysis_result.get("basic_metrics", {}),
                 },
             )
 
@@ -102,7 +115,9 @@ async def _analyze_page_content_async(page_id: str) -> Dict[str, Any]:
             await crud.page_analysis.update(
                 session, db_obj=analysis, obj_in={"status": "error"}
             )
-            logger.exception(f"Exception analyzing content for page {page.url}")
+            logger.exception(
+                f"Exception analyzing content for page {page.url}: {str(e)}"
+            )
             return {"success": False, "error": str(e)}
 
 
@@ -123,6 +138,12 @@ async def _create_recommendations(
     for rec_data in recommendations:
         # Map category from analyzer to database category
         category_mapping = {
+            "seo": "seo",
+            "content": "content",
+            "structure": "structure",
+            "ux": "ux",
+            "conversion": "conversion",
+            # Backward compatibility mapping
             "seo_meta_tags": "seo",
             "seo_headings": "seo",
             "seo_url_structure": "seo",
@@ -130,20 +151,34 @@ async def _create_recommendations(
             "seo_optimization": "seo",
             "seo_content_relevance": "content",
             "seo_lsi_keywords": "content",
-            # Add other categories as needed
         }
 
         category = category_mapping.get(rec_data.get("category"), "content")
 
+        # Extract fields from recommendation data
+        title = rec_data.get("title", "")
+        if not title and "text" in rec_data:
+            # Handle different recommendation formats
+            title = rec_data["text"]
+
+        description = rec_data.get("description", "")
+        if not description and "text" in rec_data:
+            description = rec_data["text"]
+
+        suggestion = rec_data.get("suggestion", "")
+        if not suggestion:
+            suggestion = description
+
+        # Default priority (1=high, 3=medium, 5=low)
+        priority = rec_data.get("priority", 3)
+
         recommendation = models.PageRecommendation(
             analysis_id=analysis_id,
             category=category,
-            priority=rec_data.get("priority", 3),
-            title=rec_data.get("title"),
-            description=rec_data.get("description"),
-            suggestion=rec_data.get(
-                "description"
-            ),  # Use description as suggestion for now
+            priority=priority,
+            title=title,
+            description=description,
+            suggestion=suggestion,
             affected_elements=rec_data.get("affected_elements"),
             is_implemented=False,
         )

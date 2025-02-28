@@ -7,7 +7,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     # API settings
     API_V1_STR: str = "/api/v1"
-    SECRET_KEY: str
+    SECRET_KEY: str = "development_secret_key"  # Default for development
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
 
@@ -23,15 +23,15 @@ class Settings(BaseSettings):
         raise ValueError(v)
 
     # Database
-    POSTGRES_SERVER: str
-    POSTGRES_USER: str
-    POSTGRES_PASSWORD: str
-    POSTGRES_DB: str
+    POSTGRES_SERVER: str = "localhost"  # Default for development
+    POSTGRES_USER: str = "postgres"  # Default for development
+    POSTGRES_PASSWORD: str = "postgres"  # Default for development
+    POSTGRES_DB: str = "webcontent_analyzer"  # Default for development
     POSTGRES_PORT: str = "5432"
     DATABASE_URI: Optional[str] = None
 
     # Redis and Celery
-    REDIS_HOST: str
+    REDIS_HOST: str = "localhost"  # Default for development
     REDIS_PORT: str = "6379"
     CELERY_BROKER_URL: Optional[str] = None
     CELERY_RESULT_BACKEND: Optional[str] = None
@@ -47,8 +47,8 @@ class Settings(BaseSettings):
     NLP_MODELS_CACHE_DIR: str = "/app/nlp_models"
 
     # Environment
-    ENVIRONMENT: str = "production"
-    DEBUG: bool = False
+    ENVIRONMENT: str = "development"  # Default to development
+    DEBUG: bool = True  # Default to True for development
 
     @model_validator(mode="after")
     def assemble_db_connection(self) -> "Settings":

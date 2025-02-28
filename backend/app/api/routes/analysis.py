@@ -1,12 +1,14 @@
-from typing import Any, List, Optional
+from typing import Any, Dict, List, Optional
 from uuid import UUID
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
+from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import crud, models, schemas
 from app.api import deps
 from app.tasks import analysis_tasks
+from app.services.analyzer.content_analyzer import ContentAnalyzer
 
 router = APIRouter()
 
@@ -129,3 +131,45 @@ async def read_page_recommendations(
         )
 
     return recommendations
+
+
+from datetime import datetime
+
+
+@router.post("/content/analyze", response_model=Dict[str, Any])
+async def analyze_content_direct(
+    *,
+    content_data: schemas.ContentAnalysisRequest,
+    current_user: models.User = Depends(deps.get_current_user),
+) -> Any:
+    """
+    Directly analyze content without requiring a page in the database.
+    """
+    try:
+        # Initialize analyzer with default configuration
+        analyzer = ContentAnalyzer()
+
+        # Extract data from request
+        text = content_data.text
+        html = content_data.html
+        url = content_data.url
+        metadata = content_data.metadata
+        target_keywords = content_data.target_keywords
+
+        # Perform analysis
+        result = await analyzer.analyze_content(
+            text=text,
+            html=html,
+            metadata=metadata,
+            url=url,
+            target_keywords=target_keywords,
+        )
+
+        return {
+            "success": True,
+            "result": result,
+            "analyzed_at": datetime.utcnow().isoformat(),
+        }
+    except Exception as e:
+        logger.exception(f"Error during direct content analysis: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Analysis failed: {str(e)}")

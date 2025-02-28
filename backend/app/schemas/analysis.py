@@ -80,3 +80,27 @@ class PageRecommendationInDBBase(PageRecommendationBase):
 
 class PageRecommendation(PageRecommendationInDBBase):
     pass
+
+
+class ContentAnalysisRequest(BaseModel):
+    """Schema for direct content analysis request."""
+
+    text: str
+    html: Optional[str] = None
+    url: Optional[str] = None
+    metadata: Optional[Dict[str, Any]] = None
+    target_keywords: Optional[List[str]] = None
+
+    class Config:
+        schema_extra = {
+            "example": {
+                "text": "This is a sample text content for analysis...",
+                "html": "<html><body><h1>Sample Page</h1><p>This is sample content.</p></body></html>",
+                "url": "https://example.com/page",
+                "metadata": {
+                    "title": "Sample Page Title",
+                    "description": "This is a sample page description for testing.",
+                },
+                "target_keywords": ["sample", "testing", "analysis"],
+            }
+        }
