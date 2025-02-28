@@ -2,6 +2,7 @@
 fastapi==0.115.8
 uvicorn==0.34.0
 pydantic==2.10.6
+pydantic[email]==2.10.6
 pydantic-settings==2.8.0
 python-multipart==0.0.20
 python-jose[cryptography]==3.4.0
@@ -32,7 +33,6 @@ playwright==1.50.0
 
 # NLP and text analysis
 nltk==3.9.1
-spacy==3.8.3
 transformers==4.49.0
 scikit-learn==1.6.1
 textstat==0.7.5
@@ -59,7 +59,6 @@ pyyaml==6.0.2
 tenacity==9.0.0
 loguru==0.7.3
 ujson==5.10.0
-blis==1.2.0
 
 # Testing
 pytest==8.3.4

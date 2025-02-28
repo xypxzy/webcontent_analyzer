@@ -1,12 +1,8 @@
 import asyncio
 from datetime import datetime
 from typing import Dict, Any, List, Optional, Union, Set
-import os
-import json
 
 from loguru import logger
-import spacy
-from bs4 import BeautifulSoup
 
 from app.services.analyzer.text_preprocessor import TextPreprocessor
 from app.services.analyzer.basic_analyzer import BasicTextAnalyzer

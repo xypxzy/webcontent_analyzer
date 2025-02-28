@@ -2,18 +2,13 @@ from typing import Dict, Any, List, Optional, Union
 import re
 from collections import Counter
 import asyncio
-import math
 
-import spacy
 from bs4 import BeautifulSoup
-from textblob import TextBlob
-import nltk
 from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 from sklearn.feature_extraction.text import TfidfVectorizer
 from urllib.parse import urlparse
 
-from app.core.config import settings
 from app.services.analyzer.base_analyzer import BaseAnalyzer
 from app.services.analyzer.utils.text_utils import TextProcessor
 
@@ -25,7 +20,7 @@ class SEOAnalyzer(BaseAnalyzer):
         """Initialize SEO analyzer with configuration."""
         super().__init__(config)
         self.config = config or {}
-        self.nlp = spacy.load(self.config.get("spacy_model", "en_core_web_sm"))
+        # self.nlp = spacy.load(self.config.get("spacy_model", "en_core_web_sm"))
         self.text_processor = TextProcessor()
         self.stop_words = set(stopwords.words("english"))
 

@@ -1,16 +1,11 @@
 import asyncio
 from typing import Dict, List, Any, Optional, Tuple, Set
 from collections import Counter
-import re
-import math
 
-import spacy
 from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.decomposition import NMF, LatentDirichletAllocation
-from nltk.tokenize import word_tokenize
+from sklearn.decomposition import NMF
 from gensim.models import Phrases
 from gensim.models.phrases import Phraser
-import numpy as np
 from loguru import logger
 
 # Проверка и загрузка необходимых ресурсов NLTK
